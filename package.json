@@ -1,0 +1,32 @@
+{
+  "name": "calmseo-mcp",
+  "version": "0.1.0",
+  "description": "Public tool definitions and local mock server for the CalmSEO MCP server.",
+  "type": "module",
+  "private": true,
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.20.0",
+  "keywords": [
+    "mcp",
+    "seo",
+    "calmseo"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "mcp-inspector --transport stdio tsx ./src/server.ts",
+    "lint": "tsc --noEmit",
+    "start": "tsx ./src/server.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/inspector": "^0.17.1",
+    "@types/node": "^25.7.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  }
+}

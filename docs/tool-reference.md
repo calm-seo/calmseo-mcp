@@ -1,0 +1,74 @@
+# Tool Reference
+
+The local server returns deterministic mock data. Hosted CalmSEO responses may include account-specific fields such as credit usage.
+
+## `serp_search`
+
+Mock organic SERP search for Google or Bing.
+
+Inputs:
+
+- `search_engine`: `google` or `bing`, default `google`
+- `keyword`: search query
+- `location_name`: default `United States`
+- `language_name`: default `English`
+- `depth`: `10`, `20`, or `100`, default `10`
+- `device`: `desktop` or `mobile`, default `desktop`
+
+Example prompt:
+
+```text
+Use serp_search to find the top 10 Google results for "technical seo audit" in the United States.
+```
+
+## `keyword_search_volume`
+
+Mock search volume, CPC, and competition for a batch of keywords.
+
+Inputs:
+
+- `keywords`: 1 to 1,000 keywords
+- `location_name`: default `United States`
+- `language_name`: default `English`
+- `search_partners`: default `false`
+- `include_monthly_searches`: default `false`
+
+## `keyword_ideas`
+
+Mock keyword expansion for seed terms.
+
+Inputs:
+
+- `keywords`: 1 to 50 seed keywords
+- `location_name`: default `United States`
+- `language_name`: default `English`
+- `limit`: 1 to 1,000, default `50`
+- `offset`: default `0`
+- `closely_variants`: default `false`
+- `include_serp_info`: default `false`
+
+## `ranked_keywords`
+
+Mock keywords a target ranks for in Google.
+
+Inputs:
+
+- `target`: domain, subdomain, or page URL
+- `location_name`: default `United States`
+- `language_name`: default `English`
+- `limit`: 1 to 1,000, default `50`
+- `offset`: default `0`
+- `item_types`: one or more of `organic`, `paid`, `featured_snippet`, `local_pack`, `ai_overview_reference`
+- `historical_serp_mode`: `live`, `lost`, or `all`, default `live`
+
+## `page_audit`
+
+Mock single-page SEO audit.
+
+Inputs:
+
+- `url`: absolute URL
+- `enable_browser_rendering`: default `false`
+- `enable_javascript`: default `false`
+- `load_resources`: default `false`
+- `accept_language`: optional language header
