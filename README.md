@@ -23,6 +23,32 @@ codex mcp add calmseo --url https://mcp.calmseo.com/mcp
 
 The hosted server uses OAuth and can access SEO data for the signed-in CalmSEO account according to the scopes granted during authorization.
 
+## What You Can Ask
+
+```text
+Which Google Search Console sites do I have connected?
+```
+
+```text
+Show my top queries from Google Search Console over the last 28 days and group them by intent.
+```
+
+```text
+Find pages with high impressions but low click-through rate, then suggest title improvements.
+```
+
+```text
+Compare the top ranking pages for "technical seo audit" with our Search Console queries.
+```
+
+```text
+Audit https://example.com/blog/seo-checklist and prioritize the fixes by SEO impact.
+```
+
+```text
+Find keyword ideas for "local seo" and estimate which ones are worth writing about first.
+```
+
 ## About This Repository
 
 This repository contains public tool definitions and a lightweight mock implementation for tools that are part of the CalmSEO MCP server.
@@ -78,7 +104,7 @@ pnpm start
 
 ## Tools
 
-The local mock server implements public CalmSEO tool names:
+The local mock server implements these public CalmSEO tool names:
 
 - `serp_search`: Google or Bing organic SERP search with compact ranking results.
 - `keyword_search_volume`: Google Ads search volume, CPC, and competition for keyword batches.
@@ -86,7 +112,14 @@ The local mock server implements public CalmSEO tool names:
 - `ranked_keywords`: Keywords a domain, subdomain, or URL ranks for in Google.
 - `page_audit`: Single-URL on-page SEO audit.
 
-The hosted CalmSEO MCP server may include additional tools, such as Google Search Console tools, depending on your account and connected integrations.
+The hosted CalmSEO MCP server also includes Google Search Console tools when your account has a connected property:
+
+- `gsc_list_sites`: List available Search Console sites.
+- `gsc_search_analytics`: Query Search Console performance data with dimensions and filters.
+- `gsc_top_queries`: Find top queries by clicks, impressions, CTR, or position.
+- `gsc_top_pages`: Find top pages by clicks, impressions, CTR, or position.
+- `gsc_page_queries`: Show queries driving traffic to a specific page.
+- `gsc_list_sitemaps`: List submitted sitemaps for a Search Console site.
 
 See [docs/tool-reference.md](docs/tool-reference.md) for tool inputs and response examples.
 
