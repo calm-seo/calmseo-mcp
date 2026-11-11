@@ -1,6 +1,6 @@
 # CalmSEO MCP Server
 
-CalmSEO gives AI assistants live SEO data through MCP: keyword research, SERP checks, competitor keyword reports, page audits, and Google Search Console insights.
+CalmSEO gives AI assistants live SEO data through MCP: keyword research, SERP checks, competitor keyword reports, backlink analysis, page audits, and Google Search Console insights.
 
 - Website: [calmseo.com](https://calmseo.com)
 - Hosted MCP endpoint: `https://mcp.calmseo.com/mcp`
@@ -47,6 +47,14 @@ Audit https://example.com/blog/seo-checklist and prioritize the fixes by SEO imp
 
 ```text
 Find keyword ideas for "local seo" and estimate which ones are worth writing about first.
+```
+
+```text
+Find sites that link to competitor-one.com and competitor-two.com but not to example.com, and rank them as link building prospects.
+```
+
+```text
+Summarize the backlink profile of example.com and list its strongest dofollow backlinks.
 ```
 
 ## About This Repository
@@ -111,6 +119,11 @@ The local mock server implements these public CalmSEO tool names:
 - `keyword_ideas`: Keyword expansion ideas for seed terms.
 - `ranked_keywords`: Keywords a domain, subdomain, or URL ranks for in Google.
 - `page_audit`: Single-URL on-page SEO audit.
+- `get_backlink_summary`: Backlink profile overview for a domain or page: rank (0-100), backlinks, referring domains, nofollow counts, spam score, broken backlinks, and top linking TLDs and countries.
+- `get_backlinks`: Backlinks pointing to a domain or page, with the linking URL, anchor text, dofollow status, linking site rank, first and last seen dates, and new or lost flags.
+- `find_backlink_gaps`: Sites that link to all of the given competitors but not to your domain, for finding link building prospects.
+
+The backlink tools are paid on the hosted server: `get_backlink_summary` costs 5 credits, and `get_backlinks` and `find_backlink_gaps` cost 5 credits for up to 100 rows or 15 for up to 1,000. Rank is a 0-100 backlink strength score, not Domain Rating or Domain Authority. See [Backlink MCP](https://calmseo.com/backlink-mcp) for details.
 
 The hosted CalmSEO MCP server also includes Google Search Console tools when your account has a connected property:
 

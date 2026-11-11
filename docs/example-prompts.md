@@ -45,3 +45,15 @@ Use ranked_keywords for calmseo.com with a limit of 20. Identify quick-win keywo
 ```text
 Use page_audit for https://example.com/blog/seo-checklist and list the failed checks, title, description, h1, and Core Web Vitals-like timing fields.
 ```
+
+```text
+Use get_backlink_summary for example.com and explain its rank, referring domains, nofollow share, and spam score.
+```
+
+```text
+Use get_backlinks for example.com with status lost and sort newest. List the strongest lost links worth trying to win back.
+```
+
+```text
+Use find_backlink_gaps with target example.com and competitors competitor-one.com and competitor-two.com. Group the linking sites by type and pick the 10 best link building prospects.
+```

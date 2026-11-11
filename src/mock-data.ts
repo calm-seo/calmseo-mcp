@@ -41,6 +41,30 @@ interface RankedKeywordsInput {
   historical_serp_mode: HistoricalSerpMode;
 }
 
+interface BacklinkSummaryInput {
+  target: string;
+  include_subdomains: boolean;
+}
+
+interface BacklinksInput {
+  target: string;
+  mode: "one_per_domain" | "as_is" | "one_per_anchor";
+  status: "live" | "lost";
+  dofollow_only: boolean;
+  sort: "rank" | "newest";
+  include_subdomains: boolean;
+  limit: number;
+  offset: number;
+}
+
+interface BacklinkGapsInput {
+  target: string;
+  competitors: string[];
+  dofollow_only: boolean;
+  limit: number;
+  offset: number;
+}
+
 interface PageAuditInput {
   url: string;
   enable_browser_rendering: boolean;
@@ -61,6 +85,23 @@ const SAMPLE_DOMAINS = [
   "example.com",
   "wikipedia.org",
 ];
+
+const LINKING_SITE_WORDS = [
+  "growth",
+  "founder",
+  "saas",
+  "marketing",
+  "content",
+  "startup",
+  "webdev",
+  "analytics",
+  "indie",
+  "search",
+];
+
+const LINKING_SITE_SUFFIXES = ["weekly.com", "hub.io", "notes.dev", "digest.net", "review.org"];
+
+const ANCHORS = ["best seo tools", "this guide", "keyword research", "read more", "seo audit checklist"];
 
 const IDEA_MODIFIERS = [
   "tool",
@@ -254,6 +295,132 @@ export function buildRankedKeywords(input: RankedKeywordsInput): Record<string, 
   };
 }
 
+export function buildBacklinkSummary(input: BacklinkSummaryInput): Record<string, unknown> {
+  const target = normalizeBacklinkTarget(input.target);
+  const hash = hashString(target);
+  const referringDomains = 120 + (hash % 4000);
+
+  return {
+    mock: true,
+    task_id: taskId("backlink-summary", target),
+    status: "Ok.",
+    summary: {
+      target,
+      rank: 20 + (hash % 60),
+      backlinks: referringDomains * (6 + (hash % 20)),
+      referring_domains: referringDomains,
+      referring_main_domains: Math.floor(referringDomains * 0.92),
+      referring_domains_nofollow: Math.floor(referringDomains * 0.21),
+      referring_pages: referringDomains * 4,
+      broken_backlinks: hash % 140,
+      broken_pages: hash % 25,
+      backlinks_spam_score: hash % 30,
+      target_spam_score: hash % 12,
+      top_tlds: {
+        com: Math.floor(referringDomains * 0.55),
+        org: Math.floor(referringDomains * 0.12),
+        io: Math.floor(referringDomains * 0.08),
+      },
+      top_countries: {
+        US: Math.floor(referringDomains * 0.4),
+        GB: Math.floor(referringDomains * 0.09),
+        DE: Math.floor(referringDomains * 0.06),
+      },
+    },
+    request: {
+      include_subdomains: input.include_subdomains,
+    },
+  };
+}
+
+export function buildBacklinks(input: BacklinksInput): Record<string, unknown> {
+  const target = normalizeBacklinkTarget(input.target);
+  const totalCount = 80 + (hashString(target) % 900);
+  const count = Math.min(input.limit, Math.max(totalCount - input.offset, 0));
+  const backlinks = Array.from({ length: count }, (_, index) => {
+    const position = input.offset + index;
+    const domain = linkingDomain(position);
+    const hash = hashString(`${target}:${domain}`);
+    const dofollow = input.dofollow_only || hash % 4 !== 0;
+    const firstSeen = mockDate(input.sort === "newest" ? position : hash % 700);
+
+    return compactObject({
+      url_from: `https://${domain}/${slugify(ANCHORS[hash % ANCHORS.length]!)}`,
+      domain_from: domain,
+      url_to: target.startsWith("https://") ? target : `https://${target}/`,
+      anchor: ANCHORS[hash % ANCHORS.length],
+      dofollow,
+      link_type: "anchor",
+      attributes: dofollow ? undefined : ["nofollow"],
+      domain_from_rank: input.sort === "rank" ? Math.max(1, 90 - position) : hash % 90,
+      backlink_spam_score: hash % 20,
+      links_from_domain: input.mode === "one_per_domain" ? 1 + (hash % 5) : undefined,
+      is_new: hash % 9 === 0,
+      is_lost: input.status === "lost",
+      first_seen: firstSeen,
+      last_seen: input.status === "lost" ? mockDate(hash % 30) : mockDate(0),
+    });
+  });
+
+  return {
+    mock: true,
+    task_id: taskId("backlinks", target),
+    status: "Ok.",
+    target,
+    mode: input.mode,
+    total_count: totalCount,
+    items_count: backlinks.length,
+    backlinks,
+    request: {
+      status: input.status,
+      dofollow_only: input.dofollow_only,
+      sort: input.sort,
+      include_subdomains: input.include_subdomains,
+      limit: input.limit,
+      offset: input.offset,
+    },
+  };
+}
+
+export function buildBacklinkGaps(input: BacklinkGapsInput): Record<string, unknown> {
+  const target = normalizeBacklinkTarget(input.target);
+  const competitors = [
+    ...new Set(input.competitors.map(normalizeBacklinkTarget).filter((competitor) => competitor && competitor !== target)),
+  ];
+  // Fewer competitors means fewer sites have to link to all of them, so the list is broader.
+  const totalCount = Math.floor((400 + (hashString(competitors.join(",")) % 600)) / Math.max(competitors.length, 1));
+  const count = Math.min(input.limit, Math.max(totalCount - input.offset, 0));
+  const domains = Array.from({ length: count }, (_, index) => {
+    const position = input.offset + index;
+    const domain = linkingDomain(position);
+
+    return {
+      domain,
+      rank: Math.max(1, 90 - position),
+      backlinks_to_competitors: Object.fromEntries(
+        competitors.map((competitor) => [competitor, 1 + (hashString(`${domain}:${competitor}`) % 12)]),
+      ),
+      first_seen: mockDate(hashString(domain) % 900),
+    };
+  });
+
+  return {
+    mock: true,
+    task_id: taskId("backlink-gaps", `${target}:${competitors.join(",")}`),
+    status: "Ok.",
+    competitors,
+    total_count: totalCount,
+    items_count: domains.length,
+    domains,
+    request: {
+      target,
+      dofollow_only: input.dofollow_only,
+      limit: input.limit,
+      offset: input.offset,
+    },
+  };
+}
+
 export function buildPageAudit(input: PageAuditInput): Record<string, unknown> {
   const url = new URL(input.url);
   const hash = hashString(url.href);
@@ -327,6 +494,34 @@ function normalizeKeywords(keywords: string[]): string[] {
 function normalizeTarget(value: string): string {
   const trimmed = normalizeText(value).replace(/^https?:\/\//, "").replace(/^www\./, "");
   return trimmed.split("/")[0]?.toLowerCase() ?? trimmed.toLowerCase();
+}
+
+// Bare domain without protocol or www for sites, or the absolute URL for a specific page.
+function normalizeBacklinkTarget(value: string): string {
+  const trimmed = normalizeText(value);
+  const hasProtocol = /^https?:\/\//i.test(trimmed);
+  let url: URL;
+
+  try {
+    url = new URL(hasProtocol ? trimmed : `https://${trimmed}`);
+  } catch {
+    return trimmed.toLowerCase();
+  }
+
+  const isPage = url.pathname !== "/" || url.search !== "";
+  return isPage ? url.href : url.hostname.replace(/^www\./, "");
+}
+
+function linkingDomain(position: number): string {
+  const word = LINKING_SITE_WORDS[position % LINKING_SITE_WORDS.length]!;
+  const suffix = LINKING_SITE_SUFFIXES[Math.floor(position / LINKING_SITE_WORDS.length) % LINKING_SITE_SUFFIXES.length]!;
+  const round = Math.floor(position / (LINKING_SITE_WORDS.length * LINKING_SITE_SUFFIXES.length));
+  return round === 0 ? `${word}${suffix}` : `${word}${round}${suffix}`;
+}
+
+// Deterministic ISO date a number of days before a fixed reference date.
+function mockDate(daysAgo: number): string {
+  return new Date(Date.UTC(2026, 0, 1) - daysAgo * 86_400_000).toISOString().slice(0, 10);
 }
 
 function taskId(prefix: string, value: string): string {

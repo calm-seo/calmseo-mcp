@@ -2,6 +2,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
 import {
+  buildBacklinkGaps,
+  buildBacklinks,
+  buildBacklinkSummary,
   buildKeywordIdeas,
   buildKeywordSearchVolume,
   buildPageAudit,
@@ -20,6 +23,21 @@ const languageNameSchema = z
   .min(1)
   .default("English")
   .describe("Search language name, for example 'English'.");
+
+const backlinkTargetSchema = z
+  .string()
+  .min(1)
+  .describe("Domain such as example.com, or a full page URL such as https://example.com/blog/post for one page.");
+
+const includeSubdomainsSchema = z.boolean().default(true).describe("Count links to subdomains of the target too.");
+
+const backlinkLimitSchema = z
+  .number()
+  .int()
+  .min(1)
+  .max(1000)
+  .default(100)
+  .describe("Rows to return. Up to 100 costs 5 credits, 101-1,000 costs 15 credits on the hosted server.");
 
 export function createCalmSeoMockServer(): McpServer {
   const server = new McpServer({
@@ -132,6 +150,77 @@ export function createCalmSeoMockServer(): McpServer {
       },
     },
     async (args) => jsonToolResult(buildPageAudit(args)),
+  );
+
+  server.registerTool(
+    "get_backlink_summary",
+    {
+      title: "Backlink Summary",
+      description:
+        "Mock backlink profile overview for a domain or page: rank (0-100), backlinks, referring domains, nofollow counts, spam score, broken backlinks, and top linking TLDs and countries.",
+      inputSchema: {
+        target: backlinkTargetSchema,
+        include_subdomains: includeSubdomainsSchema,
+      },
+    },
+    async (args) => jsonToolResult(buildBacklinkSummary(args)),
+  );
+
+  server.registerTool(
+    "get_backlinks",
+    {
+      title: "Backlinks",
+      description:
+        "Mock list of backlinks pointing to a domain or page, with the linking URL, anchor text, dofollow status, linking site rank (0-100), first and last seen dates, and new or lost flags.",
+      inputSchema: {
+        target: backlinkTargetSchema,
+        mode: z
+          .enum(["one_per_domain", "as_is", "one_per_anchor"])
+          .default("one_per_domain")
+          .describe(
+            "one_per_domain returns the strongest link from each linking site. as_is returns every link. one_per_anchor returns one link per anchor text.",
+          ),
+        status: z
+          .enum(["live", "lost"])
+          .default("live")
+          .describe("live returns links that exist now. lost returns links that were removed."),
+        dofollow_only: z.boolean().default(false).describe("Return only dofollow links."),
+        sort: z
+          .enum(["rank", "newest"])
+          .default("rank")
+          .describe("rank puts links from the strongest sites first. newest puts recently found links first."),
+        include_subdomains: includeSubdomainsSchema,
+        limit: backlinkLimitSchema,
+        offset: z.number().int().min(0).max(20000).default(0),
+      },
+    },
+    async (args) => jsonToolResult(buildBacklinks(args)),
+  );
+
+  server.registerTool(
+    "find_backlink_gaps",
+    {
+      title: "Backlink Gaps",
+      description:
+        "Mock list of sites that link to all of the given competitors but not to your domain, ranked by linking site rank (0-100), with backlink counts per competitor. Use it to find link building prospects.",
+      inputSchema: {
+        target: z
+          .string()
+          .min(1)
+          .describe("Your domain, such as example.com. Sites that already link to it are left out."),
+        competitors: z
+          .array(z.string().min(1))
+          .min(1)
+          .max(20)
+          .describe(
+            "Competitor domains. Results are sites that link to every competitor listed, so 1-3 competitors gives the broadest list.",
+          ),
+        dofollow_only: z.boolean().default(false).describe("Count only dofollow links."),
+        limit: backlinkLimitSchema,
+        offset: z.number().int().min(0).default(0),
+      },
+    },
+    async (args) => jsonToolResult(buildBacklinkGaps(args)),
   );
 
   return server;

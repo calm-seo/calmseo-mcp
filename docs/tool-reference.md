@@ -153,3 +153,51 @@ Inputs:
 - `enable_javascript`: default `false`
 - `load_resources`: default `false`
 - `accept_language`: optional language header
+
+## `get_backlink_summary`
+
+Mock backlink profile overview for a domain or page: rank, backlinks, referring domains, nofollow counts, spam score, broken backlinks, and top linking TLDs and countries. Rank is a 0-100 backlink strength score, not Domain Rating or Domain Authority.
+
+Inputs:
+
+- `target`: domain such as `example.com`, or a full page URL
+- `include_subdomains`: default `true`
+
+Hosted cost: 5 credits.
+
+## `get_backlinks`
+
+Mock backlinks pointing to a domain or page, with the linking URL, anchor text, dofollow status, linking site rank, first and last seen dates, and new or lost flags.
+
+Inputs:
+
+- `target`: domain such as `example.com`, or a full page URL
+- `mode`: `one_per_domain`, `as_is`, or `one_per_anchor`, default `one_per_domain`
+- `status`: `live` or `lost`, default `live`
+- `dofollow_only`: default `false`
+- `sort`: `rank` or `newest`, default `rank`
+- `include_subdomains`: default `true`
+- `limit`: 1 to 1,000, default `100`
+- `offset`: 0 to 20,000, default `0`
+
+Hosted cost: 5 credits for up to 100 rows, 15 for 101 to 1,000.
+
+## `find_backlink_gaps`
+
+Mock sites that link to all of the given competitors but not to your domain, ranked by linking site rank, with backlink counts per competitor. Fewer competitors give a broader list.
+
+Inputs:
+
+- `target`: your domain, such as `example.com`
+- `competitors`: 1 to 20 competitor domains
+- `dofollow_only`: default `false`
+- `limit`: 1 to 1,000, default `100`
+- `offset`: default `0`
+
+Hosted cost: 5 credits for up to 100 rows, 15 for 101 to 1,000.
+
+Example prompt:
+
+```text
+Use find_backlink_gaps with target example.com and competitors competitor-one.com and competitor-two.com to find link building prospects.
+```
